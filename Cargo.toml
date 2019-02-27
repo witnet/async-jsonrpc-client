@@ -1,0 +1,40 @@
+[package]
+name = "async-jsonrpc-client"
+version = "0.1.0"
+description = "JsonRPC client"
+license = "MIT"
+keywords = ["jsonrpc", "rpc", "client", "websockets", "http", "tcp"]
+authors = ["Witnet Foundation <info@witnet.foundation>", "Tomasz Drwięga <tomasz@parity.io>"]
+edition = "2015"
+readme = "README.md"
+
+[dependencies]
+error-chain = "0.12.0"
+futures = "0.1.25"
+jsonrpc-core = "10.1.0"
+log = "0.4.6"
+parking_lot = "0.7.1"
+serde = "1.0.88"
+serde_derive = "1.0.88"
+serde_json = "1.0.38"
+tokio-timer = "0.2.10"
+tokio-codec = { version = "0.1.1", optional = true }
+tokio-core = { version = "0.1.17", optional = true }
+url = { version = "1.7.2", optional = true }
+base64 = { version = "0.10.1", optional = true }
+websocket = { version = "<0.22", optional = true }
+hyper = { version = "0.12.24", optional = true }
+hyper-tls = { version = "0.3", optional = true }
+native-tls = { version = "0.2", optional = true }
+
+[features]
+#default = ["http", "tcp", "ws", "tls"]
+http = ["tokio-core", "hyper", "base64", "url"]
+tcp = ["tokio-core", "tokio-codec"]
+ws = ["tokio-core", "websocket"]
+tls = ["hyper-tls", "native-tls"]
+
+[[example]]
+name = "ws"
+required-features = ["ws"]
+
