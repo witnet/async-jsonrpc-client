@@ -1,11 +1,11 @@
 use futures::sync::oneshot;
 use futures::{self, Future};
-use std::sync::{self, atomic, Arc};
-use std::{fmt, mem, thread};
-use transports::tokio::reactor;
-use transports::tokio::runtime;
-use transports::Result;
-use {Error, ErrorKind, RequestId};
+
+use std::{fmt, mem};
+
+use crate::transports::tokio::runtime;
+use crate::transports::Result;
+use crate::{Error, ErrorKind, RequestId};
 
 /// Event Loop Handle.
 /// NOTE: Event loop is stopped when handle is dropped!

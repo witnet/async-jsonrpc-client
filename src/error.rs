@@ -3,7 +3,7 @@
 #![allow(unknown_lints)]
 #![allow(missing_docs)]
 
-use rpc;
+use crate::rpc;
 use serde_json;
 use std::io;
 

@@ -3,10 +3,10 @@
 use std::marker::PhantomData;
 
 use futures::{Async, Future, Poll};
-use rpc;
+use crate::rpc;
 use serde;
 use serde_json;
-use {Error, ErrorKind};
+use crate::{Error, ErrorKind};
 
 /// Value-decoder future.
 /// Takes any type which is deserializable from rpc::Value and a future which yields that

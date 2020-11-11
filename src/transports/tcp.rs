@@ -5,17 +5,17 @@ use std::net::SocketAddr;
 use std::sync::{atomic, Arc};
 
 use self::tokio_codec::{Framed, LinesCodec};
-use api::SubscriptionId;
+use crate::api::SubscriptionId;
 use futures::sync::{mpsc, oneshot};
 use futures::{Future, Sink, Stream};
-use helpers;
+use crate::helpers;
 use parking_lot::Mutex;
-use transports::shared::{EventLoopHandle, Response};
-use transports::tokio::net::TcpStream;
-use transports::tokio::reactor;
-use transports::tokio::runtime;
-use transports::Result;
-use {BatchTransport, DuplexTransport, Error, ErrorKind, RequestId, Transport};
+use crate::transports::shared::{EventLoopHandle, Response};
+use crate::transports::tokio::net::TcpStream;
+
+use crate::transports::tokio::runtime;
+use crate::transports::Result;
+use crate::{BatchTransport, DuplexTransport, Error, ErrorKind, RequestId, Transport};
 
 impl From<std::net::AddrParseError> for Error {
     fn from(err: std::net::AddrParseError) -> Self {
@@ -210,7 +210,7 @@ impl BatchTransport for TcpSocket {
 }
 
 impl DuplexTransport for TcpSocket {
-    type NotificationStream = Box<Stream<Item = rpc::Value, Error = Error> + Send + 'static>;
+    type NotificationStream = Box<dyn Stream<Item = rpc::Value, Error = Error> + Send + 'static>;
 
     fn subscribe(&self, id: &SubscriptionId) -> Self::NotificationStream {
         let (tx, rx) = mpsc::unbounded();

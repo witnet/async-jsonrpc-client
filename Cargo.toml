@@ -5,7 +5,7 @@ description = "JsonRPC client"
 license = "MIT"
 keywords = ["jsonrpc", "rpc", "client", "websockets", "http", "tcp"]
 authors = ["Witnet Foundation <info@witnet.foundation>", "Tomasz Drwięga <tomasz@parity.io>"]
-edition = "2015"
+edition = "2018"
 readme = "README.md"
 
 [dependencies]
@@ -31,12 +31,7 @@ native-tls = { version = "0.2", optional = true }
 #default = ["http", "tcp", "ws", "tls"]
 http = ["tokio", "hyper", "base64", "url"]
 tcp = ["tokio", "tokio-codec"]
-ws = ["tokio", "websocket"]
 tls = ["hyper-tls", "native-tls"]
-
-[[example]]
-name = "ws"
-required-features = ["ws"]
 
 [[example]]
 name = "tcp"

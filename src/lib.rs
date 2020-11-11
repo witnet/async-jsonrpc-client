@@ -23,10 +23,10 @@ mod helpers;
 #[cfg(any(feature = "http", feature = "tcp", feature = "ws"))]
 pub mod transports;
 
-pub use error::{Error, ErrorKind};
+pub use crate::error::{Error, ErrorKind};
 
 /// RPC result
-pub type Result<T> = Box<futures::Future<Item = T, Error = Error> + Send + 'static>;
+pub type Result<T> = Box<dyn futures::Future<Item = T, Error = Error> + Send + 'static>;
 
 /// Assigned RequestId
 pub type RequestId = usize;

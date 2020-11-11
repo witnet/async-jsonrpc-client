@@ -17,13 +17,14 @@ use self::hyper::header::HeaderValue;
 use self::url::Url;
 use futures::sync::{mpsc, oneshot};
 use futures::{self, future, Future, Stream};
-use helpers;
-use rpc;
+use crate::helpers;
+use crate::rpc;
 use serde_json;
-use transports::shared::{EventLoopHandle, Response};
-use transports::tokio_core::reactor;
-use transports::Result;
-use {BatchTransport, Error, ErrorKind, RequestId, Transport};
+use crate::transports::shared::{EventLoopHandle, Response};
+
+use crate::transports::tokio::runtime;
+use crate::transports::Result;
+use crate::{BatchTransport, Error, ErrorKind, RequestId, Transport};
 
 impl From<hyper::Error> for Error {
     fn from(err: hyper::Error) -> Self {
@@ -92,7 +93,7 @@ impl Http {
     /// Create new HTTP transport with given URL and existing event loop handle.
     pub fn with_event_loop(
         url: &str,
-        handle: &reactor::Handle,
+        handle: runtime::TaskExecutor,
         max_parallel: usize,
     ) -> Result<Self> {
         let (write_sender, write_receiver) = mpsc::unbounded();
