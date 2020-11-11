@@ -27,10 +27,10 @@ type Pending = oneshot::Sender<Result<Vec<Result<rpc::Value>>>>;
 
 type Subscription = mpsc::UnboundedSender<rpc::Value>;
 
-/// A future representing pending WebSocket request, resolves to a response.
+/// A future representing pending TcpSocket request, resolves to a response.
 pub type WsTask<F> = Response<F, Vec<Result<rpc::Value>>>;
 
-/// WebSocket transport
+/// TcpSocket transport
 #[derive(Debug, Clone)]
 pub struct TcpSocket {
     id: Arc<atomic::AtomicUsize>,
@@ -41,7 +41,7 @@ pub struct TcpSocket {
 }
 
 impl TcpSocket {
-    /// Create new WebSocket transport with separate event loop.
+    /// Create new TcpSocket transport with separate event loop.
     /// NOTE: Dropping event loop handle will stop the transport layer!
     pub fn new(url: &str) -> Result<(EventLoopHandle, Self)> {
         let url = url.to_owned();
@@ -50,10 +50,8 @@ impl TcpSocket {
         })
     }
 
-    /// Create new WebSocket transport within existing Event Loop.
-    //pub fn with_event_loop<>(addr: &str, spawn_future: impl FnOnce(impl Future<Item = (), Error = ()>)) -> Result<Self>
+    /// Create new TcpSocket transport within existing Event Loop.
     pub fn with_event_loop(addr: &str, handle: runtime::TaskExecutor) -> Result<Self>
-    //where Spawn: FnOnce(impl Future<Item = (), Error = ()>),
     {
         trace!("Connecting to: {:?}", addr);
 
@@ -137,7 +135,7 @@ impl TcpSocket {
             };
 
         handle.spawn(ws_future.map(|_| ()).map_err(|err| {
-            error!("WebSocketError: {:?}", err);
+            error!("TcpSocketError: {:?}", err);
         }));
 
         Ok(Self {
