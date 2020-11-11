@@ -19,7 +19,7 @@ serde_derive = "1.0.88"
 serde_json = "1.0.38"
 tokio-timer = "0.2.10"
 tokio-codec = { version = "0.1.1", optional = true }
-tokio-core = { version = "0.1.17", optional = true }
+tokio = { version = "0.1.22", optional = true }
 url = { version = "1.7.2", optional = true }
 base64 = { version = "0.10.1", optional = true }
 websocket = { version = "<0.22", optional = true }
@@ -29,12 +29,15 @@ native-tls = { version = "0.2", optional = true }
 
 [features]
 #default = ["http", "tcp", "ws", "tls"]
-http = ["tokio-core", "hyper", "base64", "url"]
-tcp = ["tokio-core", "tokio-codec"]
-ws = ["tokio-core", "websocket"]
+http = ["tokio", "hyper", "base64", "url"]
+tcp = ["tokio", "tokio-codec"]
+ws = ["tokio", "websocket"]
 tls = ["hyper-tls", "native-tls"]
 
 [[example]]
 name = "ws"
 required-features = ["ws"]
 
+[[example]]
+name = "tcp"
+required-features = ["tcp"]

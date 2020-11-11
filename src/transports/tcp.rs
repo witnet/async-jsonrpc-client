@@ -11,8 +11,9 @@ use futures::{Future, Sink, Stream};
 use helpers;
 use parking_lot::Mutex;
 use transports::shared::{EventLoopHandle, Response};
-use transports::tokio_core::net::TcpStream;
-use transports::tokio_core::reactor;
+use transports::tokio::net::TcpStream;
+use transports::tokio::reactor;
+use transports::tokio::runtime;
 use transports::Result;
 use {BatchTransport, DuplexTransport, Error, ErrorKind, RequestId, Transport};
 
@@ -45,12 +46,15 @@ impl TcpSocket {
     pub fn new(url: &str) -> Result<(EventLoopHandle, Self)> {
         let url = url.to_owned();
         EventLoopHandle::spawn(move |handle| {
-            Self::with_event_loop(&url, &handle).map_err(Into::into)
+            Self::with_event_loop(&url, handle).map_err(Into::into)
         })
     }
 
     /// Create new WebSocket transport within existing Event Loop.
-    pub fn with_event_loop(addr: &str, handle: &reactor::Handle) -> Result<Self> {
+    //pub fn with_event_loop<>(addr: &str, spawn_future: impl FnOnce(impl Future<Item = (), Error = ()>)) -> Result<Self>
+    pub fn with_event_loop(addr: &str, handle: runtime::TaskExecutor) -> Result<Self>
+    //where Spawn: FnOnce(impl Future<Item = (), Error = ()>),
+    {
         trace!("Connecting to: {:?}", addr);
 
         let addr: SocketAddr = addr.parse()?;
@@ -63,7 +67,7 @@ impl TcpSocket {
                 let pending_ = pending.clone();
                 let subscriptions_ = subscriptions.clone();
 
-                TcpStream::connect(&addr, handle)
+                TcpStream::connect(&addr)
                     .from_err::<Error>()
                     .map(|stream| Framed::new(stream, LinesCodec::new()).split())
                     .and_then(move |(sink, stream)| {

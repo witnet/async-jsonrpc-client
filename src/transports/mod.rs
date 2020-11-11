@@ -5,7 +5,7 @@ use Error;
 /// RPC Result.
 pub type Result<T> = ::std::result::Result<T, Error>;
 
-extern crate tokio_core;
+extern crate tokio;
 
 pub mod shared;
 

@@ -2,7 +2,8 @@ use futures::sync::oneshot;
 use futures::{self, Future};
 use std::sync::{self, atomic, Arc};
 use std::{fmt, mem, thread};
-use transports::tokio_core::reactor;
+use transports::tokio::reactor;
+use transports::tokio::runtime;
 use transports::Result;
 use {Error, ErrorKind, RequestId};
 
@@ -10,76 +11,31 @@ use {Error, ErrorKind, RequestId};
 /// NOTE: Event loop is stopped when handle is dropped!
 #[derive(Debug)]
 pub struct EventLoopHandle {
-    thread: Option<thread::JoinHandle<()>>,
-    remote: reactor::Remote,
-    done: Arc<atomic::AtomicBool>,
+    runtime: runtime::Runtime,
 }
 
 impl EventLoopHandle {
     /// Creates a new `EventLoopHandle` and transport given the transport initializer.
     pub fn spawn<T, F>(func: F) -> Result<(Self, T)>
     where
-        F: FnOnce(&reactor::Handle) -> Result<T>,
+        F: FnOnce(runtime::TaskExecutor) -> Result<T>,
         F: Send + 'static,
         T: Send + 'static,
     {
-        let done = Arc::new(atomic::AtomicBool::new(false));
-        let (tx, rx) = sync::mpsc::sync_channel(1);
-        let done2 = done.clone();
+        let run = move || {
+            let event_loop = tokio::runtime::Builder::new().core_threads(1).build().expect("failed to create runtime");
+            let http = func(event_loop.executor())?;
+            Ok((http, event_loop))
+        };
 
-        let eloop = thread::spawn(move || {
-            let run = move || {
-                let event_loop = reactor::Core::new()?;
-                let http = func(&event_loop.handle())?;
-                Ok((http, event_loop))
-            };
-
-            let send = move |result| {
-                tx.send(result).expect("Receiving end is always waiting.");
-            };
-
-            let res = run();
-            match res {
-                Err(e) => send(Err(e)),
-                Ok((http, mut event_loop)) => {
-                    send(Ok((http, event_loop.remote())));
-
-                    while !done2.load(atomic::Ordering::Relaxed) {
-                        event_loop.turn(None);
-                    }
-                }
-            }
-        });
-
-        rx.recv()
-            .expect("Thread is always spawned.")
-            .map(|(http, remote)| {
+        run().map(|(http, runtime)| {
                 (
                     EventLoopHandle {
-                        thread: Some(eloop),
-                        remote,
-                        done,
+                        runtime,
                     },
                     http,
                 )
             })
-    }
-
-    /// Returns event loop remote.
-    pub fn remote(&self) -> &reactor::Remote {
-        &self.remote
-    }
-}
-
-impl Drop for EventLoopHandle {
-    fn drop(&mut self) {
-        self.done.store(true, atomic::Ordering::Relaxed);
-        self.remote.spawn(|_| Ok(()));
-        self.thread
-            .take()
-            .expect("We never touch thread except for drop; drop happens only once; qed")
-            .join()
-            .expect("Thread should shut down cleanly.");
     }
 }
 
